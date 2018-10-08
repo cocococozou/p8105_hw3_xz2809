@@ -1,0 +1,102 @@
+---
+title: "P8105_hw3_xz2809"
+author: "Coco"
+date: "10/4/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(p8105.datasets)
+
+theme_set(theme_bw()+theme(legend.position = "bottom"))
+```
+
+##Problem 1
+This problem uses the BRFSS data. here is the **code chunks** for data cleaning and formatting. 
+```{r}
+data("brfss_smart2010")
+brfss_smart2010=
+  janitor::clean_names(brfss_smart2010) %>% 
+  filter(topic=="Overall Health") %>% 
+  select(-topic) %>% 
+  select(-class) %>% 
+  select(-question) %>% 
+  select(-sample_size) %>%
+  select(-(confidence_limit_low:geo_location)) %>% 
+  spread(key = response, value = data_value) %>% 
+  janitor::clean_names() %>% 
+  mutate(states = locationabbr)
+brfss_smart2010 <- brfss_smart2010[, c("year", "states","locationdesc","excellent","very_good","good","fair","poor")]
+```
+
+Here is the **code chunk** to do the analysis of BRFSS data. 
+```{r}
+num_state= brfss_smart2010 %>%
+  filter(year == 2002) %>% 
+  count(states) 
+
+brfss_smart2010 %>% 
+  group_by(year,states) %>% 
+  count(states) %>% 
+  ggplot(aes(x = year, y = n, color = states))+geom_line()
+
+brfss_smart2010 %>% 
+  filter(year==2002 | year==2006 | year==2010) %>% 
+  filter(states =="NY") %>% 
+  group_by(year,states) %>% 
+  mutate (mean = mean(excellent),
+          sd = sd(excellent)) %>% 
+  filter(locationdesc == "NY - New York County") %>% 
+  select(year,mean,sd) %>%
+  knitr::kable(digits = 3)
+
+
+brfss_smart2010 %>% 
+  group_by(year,states) %>% 
+  mutate(
+    ex_mean = mean(excellent),
+    verygood_mean = mean(very_good),
+    good_mean = mean(good),
+    fair_mean = mean(fair),
+    poor_mean = mean(poor)) %>% 
+  select(year,states,ex_mean:poor_mean)
+
+```
+
+
+##Problem 2
+This problem uses the Instacart data.
+```{r}
+data("instacart")
+View(instacart)
+```
+
+```{r}
+num_aisle = instacart %>% 
+  count(aisle_id)  
+max(num_aisle$n)
+
+instacart %>% 
+  group_by(aisle_id) 
+  
+```
+
+##Problem3 
+```{r}
+data("ny_noaa")
+View(ny_noaa)
+```
+
+```{r}
+ny_noaa= 
+separate(ny_noaa, date, into = c("year","month","date"),sep = "-")
+```
+
+
+
+
+
+
+
