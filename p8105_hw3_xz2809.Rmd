@@ -71,16 +71,54 @@ This problem uses the Instacart data.
 ```{r}
 data("instacart")
 ```
+How many aisles are there, and which aisles are the most items ordered from?
+
+Make a plot that shows the number of items ordered in each aisle. Order aisles sensibly, and organize your plot so others can read it.
+
+Make a table showing the most popular item aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”
+
+Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
 
 ```{r}
 num_aisle = instacart %>% 
   count(aisle_id)  
 max(num_aisle$n)
 
-instacart %>% 
-  group_by(aisle_id) 
+x = instacart %>% 
+  group_by(aisle_id) %>% 
+  count(product_id) %>% 
+  group_by(aisle_id) %>% 
+  mutate(num_items = sum(n)) %>% 
+  distinct(aisle_id,num_items)
+
+ggplot(x, aes(x = aisle_id, y = num_items)) + geom_point()
   
 ```
+
+Make a table showing the most popular item aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”
+
+```{r}
+y = instacart %>% 
+  filter(aisle == "baking ingredients" | aisle == "dog food care" | aisle=="packaged vegetables fruits") %>% 
+  mutate(aisle = as.factor(aisle)) %>% 
+  group_by(aisle,product_id,product_name) %>% 
+  count()
+
+df.max <- aggregate(n ~ aisle, y, max)
+
+```
+
+Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
+
+```{r}
+z = instacart %>% 
+  filter(product_name == "Pink Lady Apples" | product_name == "Coffee Ice Cream") %>% 
+  select(order_hour_of_day,product_name,order_dow) %>% 
+  group_by(product_name,order_dow) %>% 
+  mutate(mean_hour_day = mean (order_hour_of_day)) %>% 
+  distinct(product_name,mean_hour_day,order_dow)
+```
+
 
 ##Problem3 
 ```{r}
