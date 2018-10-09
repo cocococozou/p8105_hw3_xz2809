@@ -194,10 +194,83 @@ brfss_smart2010 %&gt;%
 </tr>
 </tbody>
 </table>
+<pre class="r"><code>brfss_smart2010 %&gt;% 
+  group_by(year,states) %&gt;% 
+  mutate(
+    ex_mean = mean(excellent),
+    verygood_mean = mean(very_good),
+    good_mean = mean(good),
+    fair_mean = mean(fair),
+    poor_mean = mean(poor)) %&gt;% 
+  select(year,states,ex_mean:poor_mean)</code></pre>
+<pre><code>## # A tibble: 2,125 x 7
+## # Groups:   year, states [443]
+##     year states ex_mean verygood_mean good_mean fair_mean poor_mean
+##    &lt;int&gt; &lt;chr&gt;    &lt;dbl&gt;         &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+##  1  2002 AK        27.9          33.7      23.8       8.6      5.9 
+##  2  2002 AL        18.5          30.9      32.7      12.1      5.9 
+##  3  2002 AR        24.1          29.3      29.9      12.5      4.2 
+##  4  2002 AZ        24.1          33.4      29.4       8.9      4.25
+##  5  2002 AZ        24.1          33.4      29.4       8.9      4.25
+##  6  2002 CA        22.7          29.8      28.7      14.3      4.5 
+##  7  2002 CO        23.1          32.5      30.3      11.2      2.92
+##  8  2002 CO        23.1          32.5      30.3      11.2      2.92
+##  9  2002 CO        23.1          32.5      30.3      11.2      2.92
+## 10  2002 CO        23.1          32.5      30.3      11.2      2.92
+## # ... with 2,115 more rows</code></pre>
 </div>
 <div id="problem-2" class="section level2">
 <h2>Problem 2</h2>
 <p>This problem uses the Instacart data.</p>
+<pre class="r"><code>data(&quot;instacart&quot;)</code></pre>
+<pre class="r"><code>num_aisle = instacart %&gt;% 
+  count(aisle_id)  
+max(num_aisle$n)</code></pre>
+<pre><code>## [1] 150609</code></pre>
+<pre class="r"><code>instacart %&gt;% 
+  group_by(aisle_id) </code></pre>
+<pre><code>## # A tibble: 1,384,617 x 15
+## # Groups:   aisle_id [134]
+##    order_id product_id add_to_cart_ord… reordered user_id eval_set
+##       &lt;int&gt;      &lt;int&gt;            &lt;int&gt;     &lt;int&gt;   &lt;int&gt; &lt;chr&gt;   
+##  1        1      49302                1         1  112108 train   
+##  2        1      11109                2         1  112108 train   
+##  3        1      10246                3         0  112108 train   
+##  4        1      49683                4         0  112108 train   
+##  5        1      43633                5         1  112108 train   
+##  6        1      13176                6         0  112108 train   
+##  7        1      47209                7         0  112108 train   
+##  8        1      22035                8         1  112108 train   
+##  9       36      39612                1         0   79431 train   
+## 10       36      19660                2         1   79431 train   
+## # ... with 1,384,607 more rows, and 9 more variables: order_number &lt;int&gt;,
+## #   order_dow &lt;int&gt;, order_hour_of_day &lt;int&gt;,
+## #   days_since_prior_order &lt;int&gt;, product_name &lt;chr&gt;, aisle_id &lt;int&gt;,
+## #   department_id &lt;int&gt;, aisle &lt;chr&gt;, department &lt;chr&gt;</code></pre>
+</div>
+<div id="problem3" class="section level2">
+<h2>Problem3</h2>
+<pre class="r"><code>data(&quot;ny_noaa&quot;)</code></pre>
+<pre class="r"><code>ny_noaa_df= ny_noaa %&gt;% 
+  separate(date, into = c(&quot;year&quot;,&quot;month&quot;,&quot;date&quot;),sep = &quot;-&quot;) %&gt;% 
+  janitor::clean_names() %&gt;% 
+  mutate(tmin = as.numeric(tmin),
+         tmax = as.numeric(tmax),
+         id = as.factor(id),
+         ave = tmax - tmin)</code></pre>
+<pre class="r"><code>MaxTable &lt;- function(x){
+     m &lt;- unique(x)
+     m[which.max(tabulate(match(x,m)))]
+}
+MaxTable(ny_noaa_df$snow)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p>Make a two-panel plot showing the average temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?</p>
+<pre class="r"><code>mean_ave_df = ny_noaa_df %&gt;% 
+  filter(month==&quot;07&quot; | month==&quot;01&quot;) %&gt;% 
+  group_by(year,month) %&gt;% 
+  filter(!is.na(tmax) &amp; !is.na(tmin)) %&gt;% 
+  mutate(ave_month = mean(ave)) %&gt;% 
+  distinct(year, id, ave_month)</code></pre>
 </div>
 
 

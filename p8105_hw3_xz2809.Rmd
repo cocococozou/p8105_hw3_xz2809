@@ -70,7 +70,6 @@ brfss_smart2010 %>%
 This problem uses the Instacart data.
 ```{r}
 data("instacart")
-View(instacart)
 ```
 
 ```{r}
@@ -86,13 +85,41 @@ instacart %>%
 ##Problem3 
 ```{r}
 data("ny_noaa")
-View(ny_noaa)
 ```
 
 ```{r}
-ny_noaa= 
-separate(ny_noaa, date, into = c("year","month","date"),sep = "-")
+ny_noaa_df= ny_noaa %>% 
+  separate(date, into = c("year","month","date"),sep = "-") %>% 
+  janitor::clean_names() %>% 
+  mutate(tmin = as.numeric(tmin),
+         tmax = as.numeric(tmax),
+         id = as.factor(id),
+         ave = tmax - tmin)
 ```
+
+```{r}
+MaxTable <- function(x){
+     m <- unique(x)
+     m[which.max(tabulate(match(x,m)))]
+}
+MaxTable(ny_noaa_df$snow)
+
+
+```
+Make a two-panel plot showing the average temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+
+```{r}
+
+mean_ave_df = ny_noaa_df %>% 
+  filter(month=="07" | month=="01") %>% 
+  group_by(year,month) %>% 
+  filter(!is.na(tmax) & !is.na(tmin)) %>% 
+  mutate(ave_month = mean(ave)) %>% 
+  distinct(year, id, ave_month)
+
+
+```
+
 
 
 
