@@ -10,12 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(p8105.datasets)
 library(ggplot2)
-knitr::opts_chunk$set(
-  fig.width = 5,
-  fig.asp = .5,
-  out.width = "90%"
-)
-
+library(patchwork)
 
 theme_set(theme_bw())
 ```
@@ -42,27 +37,44 @@ Here is the **code chunk** to do the analysis of BRFSS data.
 ```{r message = FALSE, warning = FALSE}
 num_state= brfss_smart2010 %>%
   filter(year == 2002) %>% 
-  count(states) %>% 
-  filter(n==7)
+  count(states) 
 
+num_state %>% 
+  filter(n == 7)
+```
+The CT (Connecticut), FL(Florida) and NC(North Carolina) were observed at 7 locations. There are in total 49 observations, which is 49 states in US. 
+
+
+Here is the **code chunk** to make a “spaghetti plot” that shows the number of locations in each state from 2002 to 2010.
+```{r}
 brfss_smart2010 %>% 
   group_by(year,states) %>% 
   count(states) %>% 
   ggplot(aes(x = year, y = n, color = states))+geom_line()+
-  theme(legend.position = "none")
+  theme(legend.position = "bottom") 
+```
+The other 48 states has the similar distribution of number of locatinos observered. However, the Florida has over 40 locations observed in 2007 and year 2010, which looks like two outliers.
 
+Here is the **code chunk** to make a table showing, for the years 2002, 2006, and 2010, the mean and standard deviation of the proportion of “Excellent” responses across locations in NY State.
+
+```{r}
 brfss_smart2010 %>% 
   filter(year==2002 | year==2006 | year==2010) %>% 
   filter(states =="NY") %>% 
-  group_by(year,states) %>% 
+  group_by(year) %>% 
   mutate (mean = mean(excellent),
           sd = sd(excellent)) %>% 
-  filter(locationdesc == "NY - New York County") %>% 
+  distinct(year,locationdesc,mean,sd) %>% 
   select(year,mean,sd) %>%
+  distinct(year,mean,sd) %>% 
   knitr::kable(digits = 3)
+```
+All of the means and standard deviations of the three years look similar with each, which means there is no major change over the 8 years. 
 
+Here is the **code chunk** to make a five-panel plot that shows, for each response category separately, the distribution of these state-level averages over time. 
 
-brfss_smart2010 %>% 
+```{r}
+mean_five_cat = brfss_smart2010 %>% 
   group_by(year,states) %>% 
   mutate(
     Excellent_Mean = mean(excellent),
@@ -73,7 +85,13 @@ brfss_smart2010 %>%
   select(year,states,Excellent_Mean:Poor_Mean) %>% 
   group_by(year) %>% 
   distinct(states,Excellent_Mean,Verygood_Mean,Good_Mean,Fair_Mean,Poor_Mean) %>% 
-  gather(key = cat, value = proportion, Excellent_Mean:Poor_Mean) %>% 
+  gather(key = cat, value = proportion, Excellent_Mean:Poor_Mean)
+  
+  
+mean_five_cat$cat = as.factor(mean_five_cat$cat) 
+mean_five_cat$cat = factor(mean_five_cat$cat,levels = c("Excellent_Mean","Verygood_Mean","Good_Mean","Fair_Mean","Poor_Mean"))
+
+mean_five_cat %>% 
   ggplot(aes(x = year, y = proportion)) +
   geom_point(alpha = .5) + 
   facet_grid(~cat) + 
@@ -81,18 +99,14 @@ brfss_smart2010 %>%
   theme(legend.position = "none")+
   scale_x_continuous(breaks = c(2002, 2006, 2010), 
                      labels = c("02", "06", "10"))
-
 ```
-
+From the plot above, we observed that the proportino of each category are similar over 2002 - 2010. The "vary good" response is the most frequent category while "poor" response is the least frequent category. 
 
 ##Problem 2
 This problem uses the Instacart data.
 ```{r}
 data("instacart")
 ```
-How many aisles are there, and which aisles are the most items ordered from?
-
-Make a plot that shows the number of items ordered in each aisle. Order aisles sensibly, and organize your plot so others can read it.
 
 Make a table showing the most popular item aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”
 
@@ -100,39 +114,41 @@ Make a table showing the mean hour of the day at which Pink Lady Apples and Coff
 
 ```{r}
 num_aisle = instacart %>% 
-  count(aisle_id)  
+  count(aisle) %>% 
+  filter(n == max(n))
+```
+There are in total 134 aisles and "Fresh Vegetable" is the most items ordered from. 
 
-which.max(num_aisle$n)
+Here is the **code chunk** to make a plot that shows the number of items ordered in each aisle. 
 
+```{r}
 x = instacart %>% 
   group_by(aisle_id) %>% 
   count(product_id) %>% 
   group_by(aisle_id) %>% 
   mutate(num_items = sum(n)) %>% 
   distinct(aisle_id,num_items)
-
 ggplot(x, aes(x = aisle_id, y = num_items)) + geom_point()
-  
 ```
+From the data above, we could observe that the numbers of items ordered from most aisles are under 25,000. There are only two of items have over 150,000 items ordered from, one of them is the Fresh Vegetable aisle, which is the maximum ordered number. This makes sense because people tend to shop the most frequent.
 
-Make a table showing the most popular item aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”
+Here is the **code chunk** to make a table showing the most popular item aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits":
 
 ```{r}
-y = instacart %>% 
+popular_item = instacart %>% 
   filter(aisle == "baking ingredients" | aisle == "dog food care" | aisle=="packaged vegetables fruits") %>% 
   mutate(aisle = as.factor(aisle)) %>% 
   group_by(aisle,product_id,product_name) %>% 
-  count()
+  count() %>% 
+  group_by(aisle) %>% 
+  filter(n == max(n))
 
-df_max <- aggregate(n ~ aisle, y, max) %>% 
-  as.data.frame() 
-
-df_max %>% 
+popular_item %>%  
   knitr::kable(digits = 1)
-
 ```
+Light Brown Sugar is the most popular item in baking ingredients, ordered 499 times, Snack Sticks Chicken & Rice Recipe Dog Treats is the most popular item in dog food care, ordered 30 times, Organic Baby Spinach is the most popular item in packaged vegetables fruits, ordered 9784 times.
 
-Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
+Here is the **code chunk** to make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week:
 
 ```{r}
 z = instacart %>% 
@@ -162,6 +178,8 @@ ny_noaa_df= ny_noaa %>%
          id = as.factor(id))
 ```
 
+Here is the **code chunk** to calcualte for snow fall the most commonly observed values. 
+
 ```{r}
 MaxTable <- function(x){
      m <- unique(x)
@@ -170,9 +188,11 @@ MaxTable <- function(x){
 MaxTable(ny_noaa_df$snow)
 
 ```
-Make a two-panel plot showing the average temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+The most commonly observed values for snow fall is 0, which make sense because the most of the year, new york does not snwo.
 
-```{r}
+Here is the **code chunk** to make a two-panel plot showing the average temperature in January and in July in each station across years.
+
+```{r message = FALSE, warning = FALSE}
 
 mean_ave_df = ny_noaa_df %>% 
   mutate(year = as.numeric(year),
@@ -194,6 +214,12 @@ mean_ave_df%>%
   scale_x_continuous(breaks = c(1981, 1990, 2000, 2010), 
                      labels = c("1981", "1990","2000","2010"))
 
+```
+There is no outlier of mean temperature in June and July. The median mean temperature of Januarary lies around 0 degrees while the median mean temperature of July lies around 25 degress. 
+
+Here is **code chunk** to make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year
+
+```{r}
 mean_ave_df%>%
   ggplot(aes(y = ave_max)) + 
   geom_boxplot(alpha = 0.5) +
@@ -202,26 +228,24 @@ mean_ave_df%>%
   theme(legend.position = "none")
 
 d <- ggplot(ny_noaa_df, aes(tmax,tmin))
-d + geom_hex(bins = 15) + 
+a =  d + geom_hex(bins = 15) + 
   theme(legend.position = "right")+
   ggtitle("Tmax vs Tmin")+
   labs(
     caption = "For the whole data set"
   )
 
-ny_noaa_df %>% 
+b = ny_noaa_df %>% 
   select(year,snow) %>% 
   filter(snow > 0 & snow < 100) %>% 
   ggplot(aes(x = snow, fill = year)) + 
-  geom_density(alpha = 0.1)
+  geom_density(alpha = 0.1)+
+  theme(legend.position = "bottom",
+        plot.margin = margin(2,.8,10,.8, "cm"))
 
-
-
+a+b
 ```
 
-
-
-wtf
 
 
 
