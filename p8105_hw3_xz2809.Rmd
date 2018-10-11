@@ -42,6 +42,8 @@ num_state= brfss_smart2010 %>%
 num_state %>% 
   filter(n == 7)
 ```
+
+
 The CT (Connecticut), FL(Florida) and NC(North Carolina) were observed at 7 locations. There are in total 49 observations, which is 49 states in US. 
 
 
@@ -53,6 +55,8 @@ brfss_smart2010 %>%
   ggplot(aes(x = year, y = n, color = states))+geom_line()+
   theme(legend.position = "bottom") 
 ```
+
+
 The other 48 states has the similar distribution of number of locatinos observered. However, the Florida has over 40 locations observed in 2007 and year 2010, which looks like two outliers.
 
 Here is the **code chunk** to make a table showing, for the years 2002, 2006, and 2010, the mean and standard deviation of the proportion of “Excellent” responses across locations in NY State.
@@ -69,6 +73,9 @@ brfss_smart2010 %>%
   distinct(year,mean,sd) %>% 
   knitr::kable(digits = 3)
 ```
+
+
+
 All of the means and standard deviations of the three years look similar with each, which means there is no major change over the 8 years. 
 
 Here is the **code chunk** to make a five-panel plot that shows, for each response category separately, the distribution of these state-level averages over time. 
@@ -100,6 +107,9 @@ mean_five_cat %>%
   scale_x_continuous(breaks = c(2002, 2006, 2010), 
                      labels = c("02", "06", "10"))
 ```
+
+
+
 From the plot above, we observed that the proportino of each category are similar over 2002 - 2010. The "vary good" response is the most frequent category while "poor" response is the least frequent category. 
 
 ##Problem 2
@@ -130,6 +140,9 @@ x = instacart %>%
   distinct(aisle_id,num_items)
 ggplot(x, aes(x = aisle_id, y = num_items)) + geom_point()
 ```
+
+
+
 From the data above, we could observe that the numbers of items ordered from most aisles are under 25,000. There are only two of items have over 150,000 items ordered from, one of them is the Fresh Vegetable aisle, which is the maximum ordered number. This makes sense because people tend to shop the most frequent.
 
 Here is the **code chunk** to make a table showing the most popular item aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits":
@@ -146,6 +159,9 @@ popular_item = instacart %>%
 popular_item %>%  
   knitr::kable(digits = 1)
 ```
+
+
+
 Light Brown Sugar is the most popular item in baking ingredients, ordered 499 times, Snack Sticks Chicken & Rice Recipe Dog Treats is the most popular item in dog food care, ordered 30 times, Organic Baby Spinach is the most popular item in packaged vegetables fruits, ordered 9784 times.
 
 Here is the **code chunk** to make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week:
@@ -162,6 +178,7 @@ z = instacart %>%
 z %>% 
   knitr::kable(digits = 2)
 ```
+
 
 
 ##Problem3 
@@ -188,6 +205,8 @@ MaxTable <- function(x){
 MaxTable(ny_noaa_df$snow)
 
 ```
+
+
 The most commonly observed values for snow fall is 0, which make sense because the most of the year, new york does not snwo.
 
 Here is the **code chunk** to make a two-panel plot showing the average temperature in January and in July in each station across years.
@@ -214,19 +233,22 @@ mean_ave_df%>%
   scale_x_continuous(breaks = c(1981, 1990, 2000, 2010), 
                      labels = c("1981", "1990","2000","2010"))
 
-```
-There is no outlier of mean temperature in June and July. The median mean temperature of Januarary lies around 0 degrees while the median mean temperature of July lies around 25 degress. 
-
-Here is **code chunk** to make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year
-
-```{r}
 mean_ave_df%>%
   ggplot(aes(y = ave_max)) + 
   geom_boxplot(alpha = 0.5) +
   facet_grid(~month, labeller = as_labeller(plot_names))+
   viridis::scale_fill_viridis(discrete = TRUE)+
   theme(legend.position = "none")
+```
 
+
+
+There is no outlier of mean temperature in June and July. The median mean temperature of Januarary lies around 0 degrees while the median mean temperature of July lies around 25 degress. 
+
+Here is **code chunk** to make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year
+
+
+```{r message = FALSE, warning = FALSE}
 d <- ggplot(ny_noaa_df, aes(tmax,tmin))
 a =  d + geom_hex(bins = 15) + 
   theme(legend.position = "right")+
