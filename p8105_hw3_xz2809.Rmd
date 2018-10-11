@@ -139,7 +139,7 @@ z = instacart %>%
   spread(key = order_dow, value = mean_hour_day) 
 
 z %>% 
-  knitr::kable(digits = 0)
+  knitr::kable(digits = 2)
 ```
 
 
