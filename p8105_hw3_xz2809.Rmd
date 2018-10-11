@@ -9,6 +9,7 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(p8105.datasets)
+library(ggplot2)
 
 
 theme_set(theme_bw())
@@ -33,7 +34,7 @@ brfss_smart2010 <- brfss_smart2010[, c("year", "states","locationdesc","excellen
 ```
 
 Here is the **code chunk** to do the analysis of BRFSS data. 
-```{r}
+```{r message = FALSE, warning = FALSE}
 num_state= brfss_smart2010 %>%
   filter(year == 2002) %>% 
   count(states) %>% 
@@ -198,10 +199,18 @@ mean_ave_df%>%
 d <- ggplot(ny_noaa_df, aes(tmax,tmin))
 d + geom_hex(bins = 15) + 
   theme(legend.position = "right")+
-  ggtitle("Tmax vs Tmin")
+  ggtitle("Tmax vs Tmin")+
   labs(
     caption = "For the whole data set"
   )
+
+ny_noaa_df %>% 
+  select(year,snow) %>% 
+  filter(snow > 0 & snow < 100) %>% 
+  ggplot(aes(x = snow, fill = year)) + 
+  geom_density(alpha = 0.1)
+
+
 
 ```
 
