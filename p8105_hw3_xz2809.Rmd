@@ -11,8 +11,8 @@ library(tidyverse)
 library(p8105.datasets)
 library(ggplot2)
 knitr::opts_chunk$set(
-  fig.width = 6,
-  fig.asp = .6,
+  fig.width = 5,
+  fig.asp = .5,
   out.width = "90%"
 )
 
@@ -221,7 +221,7 @@ ny_noaa_df %>%
 
 
 
-
+wtf
 
 
 
