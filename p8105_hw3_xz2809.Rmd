@@ -9,13 +9,9 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(p8105.datasets)
-knitr::opts_chunk$set(
-  fig.width = 4.5,
-  fig.asp = .45,
-  out.width = "90%"
-)
 
-theme_set(theme_bw()+theme(legend.position = "bottom"))
+
+theme_set(theme_bw())
 ```
 
 ##Problem 1
@@ -46,7 +42,8 @@ num_state= brfss_smart2010 %>%
 brfss_smart2010 %>% 
   group_by(year,states) %>% 
   count(states) %>% 
-  ggplot(aes(x = year, y = n, color = states))+geom_line()
+  ggplot(aes(x = year, y = n, color = states))+geom_line()+
+  theme(legend.position = "none")
 
 brfss_smart2010 %>% 
   filter(year==2002 | year==2006 | year==2010) %>% 
@@ -62,15 +59,22 @@ brfss_smart2010 %>%
 brfss_smart2010 %>% 
   group_by(year,states) %>% 
   mutate(
-    ex_mean = mean(excellent),
-    verygood_mean = mean(very_good),
-    good_mean = mean(good),
-    fair_mean = mean(fair),
-    poor_mean = mean(poor)) %>% 
-  select(year,states,ex_mean:poor_mean) %>% 
+    Excellent_Mean = mean(excellent),
+    Verygood_Mean = mean(very_good),
+    Good_Mean = mean(good),
+    Fair_Mean = mean(fair),
+    Poor_Mean = mean(poor)) %>% 
+  select(year,states,Excellent_Mean:Poor_Mean) %>% 
   group_by(year) %>% 
-  distinct(states,ex_mean,verygood_mean,good_mean,fair_mean,poor_mean) %>% 
-  ggplot(aes(x = year, y = ex_mean, color = states)) + geom_point()
+  distinct(states,Excellent_Mean,Verygood_Mean,Good_Mean,Fair_Mean,Poor_Mean) %>% 
+  gather(key = cat, value = proportion, Excellent_Mean:Poor_Mean) %>% 
+  ggplot(aes(x = year, y = proportion)) +
+  geom_point(alpha = .5) + 
+  facet_grid(~cat) + 
+  viridis::scale_fill_viridis(discrete = TRUE)+
+  theme(legend.position = "none")+
+  scale_x_continuous(breaks = c(2002, 2006, 2010), 
+                     labels = c("02", "06", "10"))
 
 ```
 
@@ -115,8 +119,10 @@ y = instacart %>%
   count()
 
 df_max <- aggregate(n ~ aisle, y, max) %>% 
-  as.data.frame() %>% 
-  knitr::kable(digits = 3)
+  as.data.frame() 
+
+df_max %>% 
+  knitr::kable(digits = 1)
 
 ```
 
@@ -129,7 +135,10 @@ z = instacart %>%
   group_by(product_name,order_dow) %>% 
   mutate(mean_hour_day = mean (order_hour_of_day)) %>% 
   distinct(product_name,mean_hour_day,order_dow) %>% 
-  spread(key = order_dow, value = mean_hour_day)
+  spread(key = order_dow, value = mean_hour_day) 
+
+z %>% 
+  knitr::kable(digits = 0)
 ```
 
 
@@ -154,25 +163,49 @@ MaxTable <- function(x){
 }
 MaxTable(ny_noaa_df$snow)
 
-
 ```
 Make a two-panel plot showing the average temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
 
 ```{r}
 
 mean_ave_df = ny_noaa_df %>% 
-  filter(month=="07") %>% 
+  mutate(year = as.numeric(year),
+         month = as.factor(month)) %>% 
+  filter(month=="07" | month == "01") %>% 
   group_by(year,month) %>% 
   filter(!is.na(tmax) & !is.na(tmin)) %>% 
-  group_by(year) %>% 
-  mutate(ave_max = mean(tmax),
-         ave_min = mean(tmin)) %>% 
-  distinct(year, ave_max, ave_min)
-ggplot(mean_ave_df, aes(x = year, y = ave_max)) + geom_point()
-ggplot(mean_ave_df, aes(y = ave_max))+geom_boxplot()
+  mutate(ave_max = mean(tmax)) %>% 
+  distinct(year, month, ave_max) 
+  
+plot_names <- c("01" = "Januarary", "07" = "July")
 
+mean_ave_df%>%
+  ggplot(aes(x = year, y = ave_max)) + 
+  geom_point(alpha = 0.5) +
+  facet_grid(~month, labeller = as_labeller(plot_names))+
+  viridis::scale_fill_viridis(discrete = TRUE)+
+  theme(legend.position = "none")+
+  scale_x_continuous(breaks = c(1981, 1990, 2000, 2010), 
+                     labels = c("1981", "1990","2000","2010"))
+
+mean_ave_df%>%
+  ggplot(aes(y = ave_max)) + 
+  geom_boxplot(alpha = 0.5) +
+  facet_grid(~month, labeller = as_labeller(plot_names))+
+  viridis::scale_fill_viridis(discrete = TRUE)+
+  theme(legend.position = "none")
+
+d <- ggplot(ny_noaa_df, aes(tmax,tmin))
+d + geom_hex(bins = 15) + 
+  theme(legend.position = "right")+
+  ggtitle("Tmax vs Tmin")
+  labs(
+    caption = "For the whole data set"
+  )
 
 ```
+
+
 
 
 
